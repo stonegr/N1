@@ -131,6 +131,7 @@ jobs:
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
+
     - name: Organize base
       id: organizebase
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
@@ -138,7 +139,8 @@ jobs:
         cd openwrt/bin/packages/*/base
         echo "BASE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
-    - name: Upload firmware to cowtransfer
+
+    - name: Upload base to cowtransfer
       id: cowtransferbase
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
       run: |
@@ -146,6 +148,7 @@ jobs:
         ./transfer cow --block 2621440 -s -p 64 --no-progress ${BASE} 2>&1 | tee cowtransfer2.log
         echo "::warning file=cowtransfer.com::$(cat cowtransfer2.log | grep https)"
         echo "::set-output name=url::$(cat cowtransfer2.log | grep https | cut -f3 -d" ")"
+
     - name: Upload base to WeTransfer
       id: wetransferbase
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
@@ -154,6 +157,7 @@ jobs:
         ./transfer wet -s -p 16 --no-progress ${BASE} 2>&1 | tee wetransfer2.log
         echo "::warning file=wetransfer.com::$(cat wetransfer2.log | grep https)"
         echo "::set-output name=url::$(cat wetransfer2.log | grep https | cut -f3 -d" ")"
+
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
